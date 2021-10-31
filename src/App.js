@@ -4,6 +4,12 @@ import './App.css';
 
 const sampleApi = 'https://reqres.in/api/users';
 
+async function addCache() {
+  const myCache = await window.caches.open('response-cache')
+  await myCache.addAll([sampleApi])
+  console.log('added cache', myCache)
+}
+
 function App({ broadcast }) {
   const [users, setUsers] = useState([])
 
@@ -29,13 +35,7 @@ function App({ broadcast }) {
           Learn React
         </a>
         <button
-          onClick={() => {
-            console.log('clicked')
-            broadcast.postMessage({
-              type: 'MSG_ID',
-              location: sampleApi
-            })
-          }}>Register Router</button>
+          onClick={addCache}>Register Router</button>
       </header>
     </div>
   );

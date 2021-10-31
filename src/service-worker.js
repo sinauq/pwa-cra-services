@@ -1,41 +1,42 @@
 /* eslint-disable no-restricted-globals */
 
-// This service worker can be customized!
-// See https://developers.google.com/web/tools/workbox/modules
-// for the list of available Workbox modules, or add any other
-// code you'd like.
-// You can also remove this file if you'd prefer not to use a
-// service worker, and the Workbox build step will be skipped.
-
 import { clientsClaim } from 'workbox-core';
 // import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { CacheFirst } from 'workbox-strategies';
+import { StaleWhileRevalidate } from 'workbox-strategies';
 
-const broadcast = new BroadcastChannel('channel-123');
+// const broadcast = new BroadcastChannel('channel-123');
 
-broadcast.onmessage = (event) => {
-  
-  if (event.data && event.data.type === 'MSG_ID') {
-  
-    registerRoute(
-      // Add in any other file extensions or routing criteria as needed.
-      ({ url }) => {
-        console.log('event', event.data.location, url)
-        return url.origin === event.data.location
-      }, // Customize this strategy as needed, e.g., by changing to CacheFirst.
-  new CacheFirst({
-    cacheName: 'api-cache',
-    // plugins: [
-    //   // Ensure that once this runtime cache reaches a maximum size the
-    //   // least-recently used images are removed.
-    //   new ExpirationPlugin({ maxEntries: 50 }),
-    // ],
-  })
-);
-  }
-}
+// broadcast.onmessage = (event) => {
+//   if (event.data && event.data.type === 'MSG_ID') {
+//     registerRoute(
+//       // Add in any other file extensions or routing criteria as needed.
+//       () => {
+//         console.log('matched')
+//         return true
+//       },
+//       async ({ url }) => {
+//         console.log('event', event.data.location, url)
+//         const res = await fetch(event.data.location)
+//         const bod = await res.text()
+
+//         return new Response(`${bod} <!-- Look Ma. Added Content. -->`, {
+//           headers: res.headers,
+//         });
+//       },
+//       new CacheFirst({
+//         cacheName: 'api-cache',
+//         // plugins: [
+//         //   // Ensure that once this runtime cache reaches a maximum size the
+//         //   // least-recently used images are removed.
+//         //   new ExpirationPlugin({ maxEntries: 50 }),
+//         // ],
+//       }
+//       )
+//     );
+//   }
+// }
 
 clientsClaim();
 
@@ -49,6 +50,17 @@ precacheAndRoute(self.__WB_MANIFEST);
 // are fulfilled with your index.html shell. Learn more at
 // https://developers.google.com/web/fundamentals/architecture/app-shell
 const fileExtensionRegexp = new RegExp('/[^/?]+\\.[^/]+$');
+
+registerRoute(
+  ({ url }) => {
+    console.log('register', url, self.location.origin)
+    return url.href.startsWith('https://reqres.in/api')
+  },
+  new StaleWhileRevalidate({
+    cacheName: 'response-cache', // Use the same cache name as before.
+  })
+);
+
 registerRoute(
   // Return false to exempt requests from being fulfilled by index.html.
   ({ request, url }) => {
@@ -68,7 +80,7 @@ registerRoute(
 
     return true;
   },
-createHandlerBoundToURL(process.env.PUBLIC_URL + '/index.html')
+  createHandlerBoundToURL(process.env.PUBLIC_URL + '/index.html')
 );
 
 // An example runtime caching route for requests that aren't handled by the
