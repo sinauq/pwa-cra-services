@@ -4,9 +4,9 @@ import './App.css';
 
 const sampleApi = 'https://reqres.in/api/users';
 
-async function addCache() {
+async function addCache(urls) {
   const myCache = await window.caches.open('response-cache')
-  await myCache.addAll([sampleApi])
+  await myCache.addAll(urls)
   console.log('added cache', myCache)
 }
 
@@ -35,7 +35,7 @@ function App({ broadcast }) {
           Learn React
         </a>
         <button
-          onClick={addCache}>Register Router</button>
+          onClick={() => addCache([sampleApi])}>Register Router</button>
       </header>
     </div>
   );
