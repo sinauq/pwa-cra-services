@@ -6,6 +6,10 @@ import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
 
+import {BackgroundSyncPlugin} from 'workbox-background-sync';
+import {NetworkOnly} from 'workbox-strategies';
+
+
 // const broadcast = new BroadcastChannel('channel-123');
 
 // broadcast.onmessage = (event) => {
@@ -95,4 +99,46 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Any other custom service worker logic can go here.
+//Any other custom service worker logic can go here.
+
+//BackgroundSync:
+
+const bgSyncPlugin = new BackgroundSyncPlugin('offlineRequests', {
+  maxRetentionTime: 24 * 60 // Retry for max of 24 Hours (specified in minutes)
+});
+
+registerRoute(
+  ({ url }) => {
+    console.log('register bsync', url, self.location.origin)
+    return url.href.startsWith('https://reqres.in/api')
+  },
+  new NetworkOnly({
+    plugins: [bgSyncPlugin]
+  }),
+  'POST'
+);
+
+
+//BackgroundSync using queue:
+
+// const queue = new Queue('myQueueName');
+
+// self.addEventListener('fetch', (event) => {
+//   // Add in your own criteria here to return early if this
+//   // isn't a request that should use background sync.
+//   if (event.request.method !== 'POST') {
+//     return;
+//   }
+
+//   const bgSyncLogic = async () => {
+//     try {
+//       const response = await fetch(event.request.clone());
+//       return response;
+//     } catch (error) {
+//       await queue.pushRequest({request: event.request});
+//       return error;
+//     }
+//   };
+
+//   event.respondWith(bgSyncLogic());
+// });
