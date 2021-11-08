@@ -27,12 +27,12 @@ const BackgroundSync = ({ sampleApi }) => {
       <label>First Name </label>
       <input type="text" name="first_name" onChange={handleInputChange} />
       <br />
-      <label>Last Name </label>
+      {/* <label>Last Name </label>
       <input type="text" name="last_name" onChange={handleInputChange} />
       <br/>
       <label>Email </label>
       <input type="email" name="email" onChange={handleInputChange} />
-      <br/>
+      <br/> */}
       <button onClick={onSubmit}>submit</button>
       <br />
     </div>
