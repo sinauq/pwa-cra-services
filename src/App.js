@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import logo from "./logo.svg";
 import "./App.css";
-import BackgroundSync from "./components/BackgroundSync";
+import Form from "./components/Form";
 
 const sampleApi = "https://reqres.in/api/users";
 
@@ -17,25 +16,14 @@ function App({ broadcast }) {
   useEffect(() => {
     fetch(sampleApi)
       .then(res => res.json())
-      .then(res => setUsers(res))
+      .then(res => setUsers(res));
   }, []);
 
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          {users && JSON.stringify(users)}
-        </p>
-        <BackgroundSync sampleApi={sampleApi}/>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <p>{users && JSON.stringify(users)}</p>
+        <Form sampleApi={sampleApi} />
         <button onClick={() => addCache([sampleApi])}>Register Router</button>
       </header>
     </div>

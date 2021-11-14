@@ -2,7 +2,7 @@
   "name": "pwa-cra",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://kianaz22.github.io/pwa-cra-services/",
+  "homepage": "https://kianaz22.github.io/pwa-cra-services",
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
