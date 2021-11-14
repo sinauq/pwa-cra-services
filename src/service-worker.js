@@ -1,12 +1,15 @@
 /* eslint-disable no-restricted-globals */
 
-import { clientsClaim } from 'workbox-core';
+import { clientsClaim } from "workbox-core";
 // import { ExpirationPlugin } from 'workbox-expiration';
-import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
-import { StaleWhileRevalidate } from 'workbox-strategies';
+import { precacheAndRoute, createHandlerBoundToURL } from "workbox-precaching";
+import { registerRoute } from "workbox-routing";
+import { StaleWhileRevalidate } from "workbox-strategies";
 
-// const broadcast = new BroadcastChannel('channel-123');
+import { BackgroundSyncPlugin } from "workbox-background-sync";
+import { NetworkOnly } from "workbox-strategies";
+
+const broadcast = new BroadcastChannel("channel-123");
 
 // broadcast.onmessage = (event) => {
 //   if (event.data && event.data.type === 'MSG_ID') {
@@ -49,15 +52,15 @@ precacheAndRoute(self.__WB_MANIFEST);
 // Set up App Shell-style routing, so that all navigation requests
 // are fulfilled with your index.html shell. Learn more at
 // https://developers.google.com/web/fundamentals/architecture/app-shell
-const fileExtensionRegexp = new RegExp('/[^/?]+\\.[^/]+$');
+const fileExtensionRegexp = new RegExp("/[^/?]+\\.[^/]+$");
 
 registerRoute(
   ({ url }) => {
-    console.log('register', url, self.location.origin)
-    return url.href.startsWith('https://reqres.in/api')
+    console.log("register", url, self.location.origin);
+    return url.href.startsWith("https://reqres.in/api");
   },
   new StaleWhileRevalidate({
-    cacheName: 'response-cache', // Use the same cache name as before.
+    cacheName: "response-cache", // Use the same cache name as before.
   })
 );
 
@@ -65,12 +68,12 @@ registerRoute(
   // Return false to exempt requests from being fulfilled by index.html.
   ({ request, url }) => {
     // If this isn't a navigation, skip.
-    console.log('registered')
-    if (request.mode !== 'navigate') {
+    console.log("registered");
+    if (request.mode !== "navigate") {
       return false;
     } // If this is a URL that starts with /_, skip.
 
-    if (url.pathname.startsWith('/_')) {
+    if (url.pathname.startsWith("/_")) {
       return false;
     } // If this looks like a URL for a resource, because it contains // a file extension, skip.
 
@@ -80,19 +83,53 @@ registerRoute(
 
     return true;
   },
-  createHandlerBoundToURL(process.env.PUBLIC_URL + '/index.html')
+  createHandlerBoundToURL(process.env.PUBLIC_URL + "/index.html")
 );
 
 // An example runtime caching route for requests that aren't handled by the
 // precache, in this case same-origin .png requests like those from in public/
 
-
 // This allows the web app to trigger skipWaiting via
 // registration.waiting.postMessage({type: 'SKIP_WAITING'})
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+self.addEventListener("message", event => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 });
 
-// Any other custom service worker logic can go here.
+//Any other custom service worker logic can go here.
+
+//Background-Sync using plugin:
+
+function handlePostMessage(msg) {
+  console.log(msg);
+  broadcast.postMessage({ type: "MSG_ID", msg: msg });
+}
+
+const bgSyncPlugin = new BackgroundSyncPlugin("offlineRequests", {
+  maxRetentionTime: 24 * 60,
+  onSync: async ({ queue }) => {
+    handlePostMessage("sync started");
+    let entry;
+    while ((entry = await queue.shiftRequest())) {
+      try {
+        await fetch(entry.request);
+      } catch (error) {
+        handlePostMessage("Replay failed.");
+        await queue.unshiftRequest(entry);
+        return;
+      }
+    }
+    handlePostMessage("The transfer is complete.");
+  },
+});
+
+registerRoute(
+  ({ url }) => {
+    return url.href.startsWith("https://reqres.in/api");
+  },
+  new NetworkOnly({
+    plugins: [bgSyncPlugin],
+  }),
+  "POST"
+);
