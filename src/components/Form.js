@@ -1,7 +1,6 @@
 import React from "react";
-import { TransferEvent } from "./project-events";
-import { publish } from "./pubsub";
 import TransferMessage from "./TransferMessage";
+const broadcast = new BroadcastChannel("channel-123");
 
 const Form = ({ sampleApi }) => {
   const userData = new FormData();
@@ -13,10 +12,10 @@ const Form = ({ sampleApi }) => {
     userData.append([name], value);
   }
 
-  function handlePublish(msg) {
-    publish(new TransferEvent({ msg: msg }));
-    console.log(msg);
-  }
+  function handlePostMessage(msg) {
+  console.log(msg);
+  broadcast.postMessage({ type: "MSG_ID", msg: msg });
+}
 
   function onSubmit() {
     var xhr = new XMLHttpRequest();
@@ -26,7 +25,7 @@ const Form = ({ sampleApi }) => {
     xhr.addEventListener("error", transferFailed);
     xhr.addEventListener("abort", transferCanceled);
 
-    xhr.open("POST", sampleApi);
+    xhr.open("POST", sampleApi, true);
 
     xhr.onreadystatechange = function (e) {
       if (xhr.readyState !== 4) {
@@ -34,9 +33,9 @@ const Form = ({ sampleApi }) => {
       }
 
       if (xhr.status === 201) {
-        handlePublish("connection ok");
+        handlePostMessage("connection ok");
       } else {
-        handlePublish(`connection error`);
+        handlePostMessage(`connection error`);
       }
     };
     xhr.send(userData);
@@ -44,23 +43,23 @@ const Form = ({ sampleApi }) => {
     function updateProgress(oEvent) {
       if (oEvent.lengthComputable) {
         var percentComplete = (oEvent.loaded / oEvent.total) * 100;
-        handlePublish(`upload progress: ${percentComplete}%`);
+        handlePostMessage(`upload progress: ${percentComplete}%`);
       } else {
         console.log("not able to show progress");
       }
     }
 
     function transferComplete(evt) {
-      handlePublish(`The transfer is complete.`);
+      handlePostMessage(`The transfer is complete.`);
       console.log('response: ',xhr.response)
     }
 
     function transferFailed(evt) {
-      handlePublish("connection error. transfer will continue after connectivity is restored.");
+      handlePostMessage("connection error. transfer will continue after connectivity is restored.");
     }
 
     function transferCanceled(evt) {
-      handlePublish("The transfer has been canceled by the user.");
+      handlePostMessage("The transfer has been canceled by the user.");
     }
   }
 
