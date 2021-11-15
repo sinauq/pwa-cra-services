@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from "react";
-
+const fakeApi = "https://weatherapi-com.p.rapidapi.com/forecast.json?q=tehran&days=3"
 const ConnectionCheck = () => {
   const [status, setStatus] = useState("");
 
@@ -12,16 +12,14 @@ const ConnectionCheck = () => {
 
     xhr.open(
       "GET",
-      "https://weatherapi-com.p.rapidapi.com/forecast.json?q=tehran&days=3"
+      fakeApi
     );
 
     xhr.onreadystatechange = function (e) {
       if (xhr.readyState !== 4) {
         return;
       }
-
-      if (xhr.status === 0) setStatus("You're offline");
-      else setStatus("You're online");
+      setStatus(xhr.status === 0 ? "You're offline" : "You're online");
     };
     xhr.send();
   }
