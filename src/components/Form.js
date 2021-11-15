@@ -1,23 +1,18 @@
-import React from "react";
+import React,{ useRef } from "react";
 import TransferMessage from "./TransferMessage";
 const broadcast = new BroadcastChannel("channel-123");
 
 const Form = ({ sampleApi }) => {
-  const userData = new FormData();
-
-  function handleInputChange(event) {
-    const target = event.target;
-    const name = target.name;
-    const value = (target.type === "text" ? target.value : target.files[0]);
-    userData.append([name], value);
-  }
+  const userData = useRef(null)
 
   function handlePostMessage(msg) {
   console.log(msg);
   broadcast.postMessage({ type: "MSG_ID", msg: msg });
 }
 
-  function onSubmit() {
+  function onSubmit(event) {
+    event.preventDefault();
+    console.log("form image: ",userData.current.avatar.value)
     var xhr = new XMLHttpRequest();
 
     xhr.addEventListener("progress", updateProgress);
@@ -38,7 +33,7 @@ const Form = ({ sampleApi }) => {
         handlePostMessage(`connection error`);
       }
     };
-    xhr.send(userData);
+    xhr.send(userData.current);
 
     function updateProgress(oEvent) {
       if (oEvent.lengthComputable) {
@@ -64,17 +59,23 @@ const Form = ({ sampleApi }) => {
   }
 
   return (
-    <div>
+    <form ref={userData} onSubmit={onSubmit}>
       <br />
       <label>Upload image </label>
-      <input type="file" name="avatar" onChange={handleInputChange} />
+      <input type="file" name="avatar" />
       <br />
       <label>First Name </label>
-      <input type="text" name="first_name" onChange={handleInputChange} />
+      <input type="text" name="first_name" />
       <br />
-      <button onClick={onSubmit}>submit</button>
+      <label>Last Name </label>
+      <input type="text" name="last_name" />
+      <br />
+      <label>Email </label>
+      <input type="email" name="email" />
+      <br />
+      <input type="submit" value="Submit" />
       <TransferMessage />
-    </div>
+    </form>
   );
 };
 
